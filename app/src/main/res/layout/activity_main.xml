@@ -9,6 +9,13 @@
     android:background="@color/black_shade_3"
     tools:context="com.example.calculatorwsb.MainActivity">
 
+    <ImageButton
+        android:id="@+id/button"
+        android:layout_width="37dp"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_mic_off_24"
+        />
+
     <TextView
         android:id="@+id/text_view_result"
         android:layout_width="match_parent"
@@ -20,7 +27,9 @@
         android:textAlignment="viewEnd"
         android:textColor="#fff"
         android:textSize="60sp"
-        tools:ignore="RtlCompat" />
+        tools:ignore="RtlCompat"
+
+        />
 
     <TableRow
         android:layout_width="match_parent"

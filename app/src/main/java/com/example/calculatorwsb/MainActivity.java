@@ -1,5 +1,8 @@
 package com.example.calculatorwsb;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -8,10 +11,18 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,6 +55,10 @@ public class MainActivity extends AppCompatActivity {
     String tmp;
     String operator;
     TextView resultTextView;
+    ImageButton imageButton;
+    SpeechRecognizer speechRecognizer;
+    Intent speechRecognizerInternet;
+    int count = 0;
 
     public MainActivity() throws IOException {
     }
@@ -54,10 +70,88 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initControl();
         initControlListener();
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+        }
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechRecognizerInternet = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
+            @Override
+            public void onReadyForSpeech(Bundle bundle) {
+
+            }
+
+            @Override
+            public void onBeginningOfSpeech() {
+
+            }
+
+            @Override
+            public void onRmsChanged(float v) {
+
+            }
+
+            @Override
+            public void onBufferReceived(byte[] bytes) {
+
+            }
+
+            @Override
+            public void onEndOfSpeech() {
+
+            }
+
+            @Override
+            public void onError(int i) {
+
+            }
+
+            @Override
+            public void onResults(Bundle bundle) {
+                ArrayList<String> data = bundle.getStringArrayList(speechRecognizer.RESULTS_RECOGNITION);
+                resultTextView.setText(data.get(0));
+            }
+
+            @Override
+            public void onPartialResults(Bundle bundle) {
+
+            }
+
+            @Override
+            public void onEvent(int i, Bundle bundle) {
+
+            }
+        });
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(requestCode == 1) {
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission granted.", Toast.LENGTH_SHORT);
+            } else {
+                Toast.makeText(this, "Permission denied.", Toast.LENGTH_SHORT);
+            }
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void initControlListener() {
+    public void initControlListener() {
+        imageButton.setOnClickListener(view -> {
+            if(count == 0) {
+                imageButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_mic_24));
+                speechRecognizer.startListening(speechRecognizerInternet);
+                count = 1;
+            } else {
+                imageButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_mic_off_24));
+                speechRecognizer.stopListening();
+                count = 0;
+            }
+        });
         button0.setOnClickListener(v -> {
             try {
                 onNumberButtonClicked("0");
@@ -188,6 +282,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void initControl() {
+        imageButton = findViewById(R.id.button);
         button0 = findViewById(R.id.button0);
         button1 = findViewById(R.id.button1);
         button2 = findViewById(R.id.button2);
@@ -206,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
         buttonDiv = findViewById(R.id.buttonDiv);
         buttonEqual = findViewById(R.id.buttonEqual);
 
-        resultTextView = (TextView)findViewById(R.id.text_view_result);
+        resultTextView = findViewById(R.id.text_view_result);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
